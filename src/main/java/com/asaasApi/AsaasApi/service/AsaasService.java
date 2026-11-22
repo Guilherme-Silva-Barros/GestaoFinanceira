@@ -65,7 +65,7 @@ public class AsaasService {
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
                 .limit(15)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),(a,b)->a, LinkedHashMap::new);
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,(a,b)->a, LinkedHashMap::new));
 
     }
 
