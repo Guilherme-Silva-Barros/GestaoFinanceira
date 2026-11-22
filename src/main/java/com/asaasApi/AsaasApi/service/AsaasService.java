@@ -7,10 +7,13 @@ import com.asaasApi.AsaasApi.dto.Pagamento;
 import com.asaasApi.AsaasApi.enuns.Status;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +54,19 @@ public class AsaasService {
     }
 
    //metodo para filtrar os melhores pagadores
+    public Map<String, BigDecimal>melhoresPagadores(LocalDate de, LocalDate ate){
+        List<ClienteCobranca>listMelhores = relatorioCobrancas(null, de, ate, null, null);
 
+        return  listMelhores
+                .stream()
+                .filter(p->List.of("RECEIVED", "CONFIRMED").contains(p.status()))
+                .collect(Collectors.groupingBy(ClienteCobranca::idCliente,
+                        Collectors.reducing(BigDecimal.ZERO, ClienteCobranca::valor, BigDecimal::add)))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .limit(15)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),(a,b)->a, LinkedHashMap::new);
+
+    }
 
 }
