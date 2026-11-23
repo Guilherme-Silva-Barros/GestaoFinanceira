@@ -7,6 +7,7 @@ import com.asaasApi.AsaasApi.dto.MelhoresPagadoresDTO;
 import com.asaasApi.AsaasApi.dto.Pagamento;
 import com.asaasApi.AsaasApi.enums.CampDate;
 import com.asaasApi.AsaasApi.enums.Status;
+import com.asaasApi.AsaasApi.exceptions.ParametroInvalidoException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -58,6 +59,9 @@ public class AsaasService {
     }
    //metodo para filtrar os melhores pagadores
     public List<MelhoresPagadoresDTO>melhoresPagadores(LocalDate de, LocalDate ate){
+        if (de != null && ate != null && de.isAfter(ate)) {
+            throw new ParametroInvalidoException("O parâmetro 'de' não pode ser posterior a 'ate'.");
+        }
         return relatorioCobrancas(null,CampDate.PAGAMENTO, de, ate, null, null)
                 .stream()
                 .filter(p->PAGOS.contains(p.status()))
