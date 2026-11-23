@@ -3,6 +3,7 @@ package com.asaasApi.AsaasApi.client;
 import com.asaasApi.AsaasApi.dto.Cliente;
 import com.asaasApi.AsaasApi.dto.Pagamento;
 import com.asaasApi.AsaasApi.dto.Pages;
+import com.asaasApi.AsaasApi.enums.CampDate;
 import com.asaasApi.AsaasApi.enums.Status;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class AsaasClient {
         this.httpClient = httpClient;
     }
 
-    public List<Pagamento> listarPagamentos(Status status, LocalDate de, LocalDate ate) {
+    public List<Pagamento> listarPagamentos(Status status, CampDate campDate, LocalDate de, LocalDate ate) {
         List<Pagamento> pagamentos = new ArrayList<>();
         int offset = 0;
         Pages<Pagamento> page;
@@ -34,10 +35,10 @@ public class AsaasClient {
                     b.queryParam("status", status);
                 }
                 if (de != null) {
-                    b.queryParam("dueDate[ge]", de);
+                    b.queryParam(campDate.campoApi()+ "[ge]"+ de);
                 }
                 if (ate != null) {
-                    b.queryParam("dueDate[le]", ate);
+                    b.queryParam(campDate.campoApi()+"[le]"+ ate);
                 }
                 return b.build();
             }).retrieve().body(new ParameterizedTypeReference<Pages<Pagamento>>() {
@@ -57,7 +58,7 @@ public class AsaasClient {
             page = httpClient.get().uri(u -> {
                 var b = u.path("/customers").queryParam("offset", off).queryParam("limit", 100);
                 if(nome != null && !nome.isBlank()) {
-                    b.queryParam("nome", nome);
+                    b.queryParam("name", nome);
                 }
                 if (email != null && !email.isBlank()) {
                     b.queryParam("email", email);

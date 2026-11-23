@@ -2,6 +2,7 @@ package com.asaasApi.AsaasApi.controller;
 
 import com.asaasApi.AsaasApi.dto.ClienteCobranca;
 import com.asaasApi.AsaasApi.dto.MelhoresPagadoresDTO;
+import com.asaasApi.AsaasApi.enums.CampDate;
 import com.asaasApi.AsaasApi.enums.Status;
 import com.asaasApi.AsaasApi.service.AsaasService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,17 +25,18 @@ public class AsaasController {
     }
 
     @GetMapping("/relatorio")
-    public List<ClienteCobranca> relatorioCobrancas(@RequestParam Status status,
-                                                    @RequestParam LocalDate de,
-                                                    @RequestParam LocalDate ate,
-                                                    @RequestParam String nome,
-                                                    @RequestParam String email ) {
-        return asaasService.relatorioCobrancas(status, de, ate, nome, email);
+    public List<ClienteCobranca> relatorioCobrancas(@RequestParam(required = false) Status status,
+                                                    @RequestParam(defaultValue = "VENCIMENTO") CampDate campoDate,
+                                                    @RequestParam(required = false) LocalDate de,
+                                                    @RequestParam(required = false)  LocalDate ate,
+                                                    @RequestParam(required = false)  String nome,
+                                                    @RequestParam(required = false)  String email ) {
+        return asaasService.relatorioCobrancas(status, campoDate,de, ate, nome, email);
     }
 
     @GetMapping("/melhores-pagadores")
-    public List<MelhoresPagadoresDTO>melhores(@RequestParam LocalDate de,
-                                              @RequestParam LocalDate ate){
+    public List<MelhoresPagadoresDTO>melhores(@RequestParam(required = false)  LocalDate de,
+                                              @RequestParam(required = false)  LocalDate ate){
         return asaasService.melhoresPagadores(de, ate);
     }
 }

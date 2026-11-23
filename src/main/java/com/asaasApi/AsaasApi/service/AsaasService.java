@@ -4,6 +4,8 @@ import com.asaasApi.AsaasApi.client.AsaasClient;
 import com.asaasApi.AsaasApi.dto.Cliente;
 import com.asaasApi.AsaasApi.dto.ClienteCobranca;
 import com.asaasApi.AsaasApi.dto.MelhoresPagadoresDTO;
+import com.asaasApi.AsaasApi.dto.Pagamento;
+import com.asaasApi.AsaasApi.enums.CampDate;
 import com.asaasApi.AsaasApi.enums.Status;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,7 @@ public class AsaasService {
         this.asaasClient = Asaasclient;
     }
     //metodo para mapear os clientes <->cobrancas
-    public List<ClienteCobranca> relatorioCobrancas(Status status, LocalDate de, LocalDate ate, String nome, String email ) {
+    public List<ClienteCobranca> relatorioCobrancas(Status status, CampDate campDate, LocalDate de, LocalDate ate, String nome, String email ) {
        //consultar a lista de clientes, transformar essa lista em uma sstream para melhor mapeamento e filtragem e
        //tratando duplicidades de Id com Lambdas
         Map<String, Cliente> clientById= asaasClient.listarCliente(nome, email)
@@ -30,11 +32,11 @@ public class AsaasService {
                 .collect(Collectors.toMap(Cliente::id, Function.identity(), (a,b) -> a));
 
         //mapeando cada cliente aos seus respectivos pagamentos
-        return asaasClient.listarPagamentos(status, de, ate)
+        return asaasClient.listarPagamentos(status,campDate, de, ate)
                 .stream()
                 .filter(pagamentos->clientById.containsKey(pagamentos.customer()))
-                .filter(p -> de == null || (p.dueDate() != null && !p.dueDate().isBefore(de)))
-                .filter(p -> ate == null || (p.dueDate() != null && !p.dueDate().isAfter(ate)))
+                .filter(p -> de == null || (dataDe(p, campDate) != null && !dataDe(p, campDate).isBefore(de)))
+                .filter(p -> ate == null || (dataDe(p, campDate) != null && !dataDe(p, campDate).isAfter(ate)))
                 .map(pagamentos->{
                     Cliente client =  clientById.get(pagamentos.customer());
                     return new ClienteCobranca(
@@ -51,10 +53,12 @@ public class AsaasService {
                 })
                 .toList();
     }
-
+    private static LocalDate dataDe(Pagamento p, CampDate campo) {
+        return campo == CampDate.PAGAMENTO ? p.paymentDate() : p.dueDate();
+    }
    //metodo para filtrar os melhores pagadores
     public List<MelhoresPagadoresDTO>melhoresPagadores(LocalDate de, LocalDate ate){
-        return relatorioCobrancas(null, de, ate, null, null)
+        return relatorioCobrancas(null,CampDate.PAGAMENTO, de, ate, null, null)
                 .stream()
                 .filter(p->PAGOS.contains(p.status()))
                 .collect(Collectors.groupingBy(ClienteCobranca::idCliente))
@@ -64,7 +68,7 @@ public class AsaasService {
                     BigDecimal total = lista.stream()
                             .map(ClienteCobranca::valor)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    return new MelhoresPagadoresDTO(primeiro.nome(), total);
+                    return new MelhoresPagadoresDTO(primeiro.idCliente(), primeiro.nome(), total);
 
                 })
                 .sorted(Comparator.comparing(MelhoresPagadoresDTO::total).reversed())
