@@ -3,7 +3,7 @@ package com.asaasApi.AsaasApi.client;
 import com.asaasApi.AsaasApi.dto.Cliente;
 import com.asaasApi.AsaasApi.dto.Pagamento;
 import com.asaasApi.AsaasApi.dto.Pages;
-import com.asaasApi.AsaasApi.enuns.Status;
+import com.asaasApi.AsaasApi.enums.Status;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class Client {
+public class AsaasClient {
 
     private final RestClient httpClient;
 
-    public Client(RestClient httpClient) {
+    public AsaasClient(RestClient httpClient) {
         this.httpClient = httpClient;
     }
 
@@ -34,10 +34,10 @@ public class Client {
                     b.queryParam("status", status);
                 }
                 if (de != null) {
-                    b.queryParam("de", de);
+                    b.queryParam("dueDate[ge]", de);
                 }
                 if (ate != null) {
-                    b.queryParam("ate", ate);
+                    b.queryParam("dueDate[le]", ate);
                 }
                 return b.build();
             }).retrieve().body(new ParameterizedTypeReference<Pages<Pagamento>>() {
@@ -56,6 +56,13 @@ public class Client {
             int off = offset;
             page = httpClient.get().uri(u -> {
                 var b = u.path("/customers").queryParam("offset", off).queryParam("limit", 100);
+                if(nome != null && !nome.isBlank()) {
+                    b.queryParam("nome", nome);
+                }
+                if (email != null && !email.isBlank()) {
+                    b.queryParam("email", email);
+                }
+
                 return b.build();
             }).retrieve().body(new ParameterizedTypeReference<Pages<Cliente>>() {
             });

@@ -1,6 +1,6 @@
 package com.asaasApi.AsaasApi.dto;
 
-import com.asaasApi.AsaasApi.enuns.Status;
+import com.asaasApi.AsaasApi.enums.Status;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.math.BigDecimal;

@@ -1,27 +1,24 @@
 package com.asaasApi.AsaasApi.service;
 
-import com.asaasApi.AsaasApi.client.Client;
+import com.asaasApi.AsaasApi.client.AsaasClient;
 import com.asaasApi.AsaasApi.dto.Cliente;
 import com.asaasApi.AsaasApi.dto.ClienteCobranca;
-import com.asaasApi.AsaasApi.dto.Pagamento;
-import com.asaasApi.AsaasApi.enuns.Status;
+import com.asaasApi.AsaasApi.dto.MelhoresPagadoresDTO;
+import com.asaasApi.AsaasApi.enums.Status;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
 public class AsaasService {
 
-    private final Client asaasClient;
-
-    public AsaasService(Client Asaasclient) {
+    private final AsaasClient asaasClient;
+    private static final Set<Status> PAGOS = EnumSet.of(Status.RECEIVED, Status.CONFIRMED, Status.RECEIVED_IN_CASH);
+    public AsaasService(AsaasClient Asaasclient) {
         this.asaasClient = Asaasclient;
     }
     //metodo para mapear os clientes <->cobrancas
@@ -36,6 +33,8 @@ public class AsaasService {
         return asaasClient.listarPagamentos(status, de, ate)
                 .stream()
                 .filter(pagamentos->clientById.containsKey(pagamentos.customer()))
+                .filter(p -> de == null || (p.dueDate() != null && !p.dueDate().isBefore(de)))
+                .filter(p -> ate == null || (p.dueDate() != null && !p.dueDate().isAfter(ate)))
                 .map(pagamentos->{
                     Cliente client =  clientById.get(pagamentos.customer());
                     return new ClienteCobranca(
@@ -54,19 +53,23 @@ public class AsaasService {
     }
 
    //metodo para filtrar os melhores pagadores
-    public Map<String, BigDecimal>melhoresPagadores(LocalDate de, LocalDate ate){
-        List<ClienteCobranca>listMelhores = relatorioCobrancas(null, de, ate, null, null);
-
-        return  listMelhores
+    public List<MelhoresPagadoresDTO>melhoresPagadores(LocalDate de, LocalDate ate){
+        return relatorioCobrancas(null, de, ate, null, null)
                 .stream()
-                .filter(p->List.of("RECEIVED", "CONFIRMED").contains(p.status()))
-                .collect(Collectors.groupingBy(ClienteCobranca::idCliente,
-                        Collectors.reducing(BigDecimal.ZERO, ClienteCobranca::valor, BigDecimal::add)))
-                .entrySet().stream()
-                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
-                .limit(15)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,(a,b)->a, LinkedHashMap::new));
+                .filter(p->PAGOS.contains(p.status()))
+                .collect(Collectors.groupingBy(ClienteCobranca::idCliente))
+                .values().stream()
+                .map(lista->{
+                    ClienteCobranca primeiro = lista.get(0);
+                    BigDecimal total = lista.stream()
+                            .map(ClienteCobranca::valor)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    return new MelhoresPagadoresDTO(primeiro.nome(), total);
 
+                })
+                .sorted(Comparator.comparing(MelhoresPagadoresDTO::total).reversed())
+                .limit(15)
+                .toList();
     }
 
 }
