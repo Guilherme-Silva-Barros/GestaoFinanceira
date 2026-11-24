@@ -28,6 +28,9 @@ public class AsaasService {
     public List<ClienteCobranca> relatorioCobrancas(Status status, CampDate campDate, LocalDate de, LocalDate ate, String nome, String email ) {
        //consultar a lista de clientes, transformar essa lista em uma sstream para melhor mapeamento e filtragem e
        //tratando duplicidades de Id com Lambdas
+        if (de != null && ate != null && de.isAfter(ate)) {
+            throw new ParametroInvalidoException("O parâmetro 'de' não pode ser posterior a 'ate'.");
+        }
         Map<String, Cliente> clientById= asaasClient.listarCliente(nome, email)
                 .stream()
                 .collect(Collectors.toMap(Cliente::id, Function.identity(), (a,b) -> a));
@@ -45,7 +48,6 @@ public class AsaasService {
                             pagamentos.customer(),
                             client.name(),
                             client.email(),
-                            client.cpfCnpj(),
                             pagamentos.value(),
                             pagamentos.status(),
                             pagamentos.dueDate(),

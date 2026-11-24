@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ClienteCobranca(String idCobranca, String idCliente, String nome, String email, String cpfCnpj,
+public record ClienteCobranca(String idCobranca, String idCliente, String nome, String email,
                               BigDecimal valor, Status status, LocalDate vencimento, LocalDate dataPagamento,
                               String tipoCobranca) {
 }

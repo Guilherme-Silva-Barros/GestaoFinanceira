@@ -23,6 +23,7 @@ public class AsaasClient {
     }
 
     public List<Pagamento> listarPagamentos(Status status, CampDate campDate, LocalDate de, LocalDate ate) {
+
         List<Pagamento> pagamentos = new ArrayList<>();
         int offset = 0;
         Pages<Pagamento> page;
@@ -35,10 +36,10 @@ public class AsaasClient {
                     b.queryParam("status", status);
                 }
                 if (de != null) {
-                    b.queryParam(campDate.campoApi()+ "[ge]"+ de);
+                    b.queryParam(campDate.campoApi()+ "[ge]", de);
                 }
                 if (ate != null) {
-                    b.queryParam(campDate.campoApi()+"[le]"+ ate);
+                    b.queryParam(campDate.campoApi()+"[le]", ate);
                 }
                 return b.build();
             }).retrieve().body(new ParameterizedTypeReference<Pages<Pagamento>>() {

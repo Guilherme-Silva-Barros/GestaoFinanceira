@@ -26,12 +26,12 @@ public class AsaasController {
 
     @GetMapping("/relatorio")
     public List<ClienteCobranca> relatorioCobrancas(@RequestParam(required = false) Status status,
-                                                    @RequestParam(defaultValue = "VENCIMENTO") CampDate campoDate,
+                                                    @RequestParam(defaultValue = "VENCIMENTO") CampDate campDate,
                                                     @RequestParam(required = false) LocalDate de,
                                                     @RequestParam(required = false)  LocalDate ate,
                                                     @RequestParam(required = false)  String nome,
                                                     @RequestParam(required = false)  String email ) {
-        return asaasService.relatorioCobrancas(status, campoDate,de, ate, nome, email);
+        return asaasService.relatorioCobrancas(status, campDate,de, ate, nome, email);
     }
 
     @GetMapping("/melhores-pagadores")

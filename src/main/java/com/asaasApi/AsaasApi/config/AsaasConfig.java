@@ -21,7 +21,12 @@ public class AsaasConfig {
                 .build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(jdk);
         factory.setReadTimeout(Duration.ofSeconds(15));
+        if (props.apiKey().contains("${")) {
+            throw new IllegalStateException("Variável ASAAS_API_KEY não definida");
+        }
         return RestClient.builder()
+
+                .requestFactory(factory)
                 .baseUrl(props.baseUrl())
                 .defaultHeader("access_token",
                         props.apiKey())
@@ -29,5 +34,6 @@ public class AsaasConfig {
                         HttpHeaders.USER_AGENT,
                         props.userAgent())
                 .build();
+
     }
 }
